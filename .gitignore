@@ -9,3 +9,7 @@ venv/
 node_modules/
 dist/
 .DS_Store
+
+# Logs
+*.log
+backend_debug.log
