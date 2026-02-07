@@ -22,7 +22,7 @@ import logging
 import traceback
 
 # Setup logging if not already done in search_logic, or just add a handler here
-logging.basicConfig(filename='backend_debug.log', level=logging.DEBUG, format='%(asctime)s %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
 
 @app.post("/api/search")
 def search_person(request: SearchRequest):

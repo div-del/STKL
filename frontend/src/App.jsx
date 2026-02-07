@@ -9,8 +9,9 @@ function App() {
   const handleSearch = async (name, extraInfo) => {
     setLoading(true);
     try {
-      // In production, use env variable for API URL
-      const url = '/api/search';
+      // Use env variable for API URL (Vercel) or fallback to localhost
+      const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8001";
+      const url = `${API_BASE}/api/search`;
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -35,15 +36,17 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center text-green-500 font-mono">
-        <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="animate-pulse">SCANNING GLOBAL NETWORKS...</p>
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center w-full h-screen bg-black/70 backdrop-blur-sm">
+        <div className="w-24 h-24 border-t-4 border-b-4 border-cyan-500 rounded-full animate-spin mb-8 shadow-[0_0_20px_rgba(6,182,212,0.5)]"></div>
+        <p className="animate-pulse text-2xl font-bold tracking-[0.2em] text-cyan-400 font-['Orbitron'] drop-shadow-[0_0_10px_rgba(6,182,212,0.8)]">
+          SCANNING GLOBAL NETWORKS...
+        </p>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="w-full min-h-screen flex items-center justify-center overflow-x-hidden">
       {!results ? (
         <SearchHero onSearch={handleSearch} />
       ) : (
