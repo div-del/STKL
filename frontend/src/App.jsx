@@ -23,7 +23,7 @@ function App() {
       setResults(data.results || []);
     } catch (error) {
       console.error("Search failed:", error);
-      alert(`Backend Connection Failed to http://localhost:8001: ${error.message}`);
+      alert(`Backend Connection Failed to ${API_BASE}: ${error.message}`);
       setResults([]);
     } finally {
       setLoading(false);
