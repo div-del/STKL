@@ -6,3 +6,4 @@ googlesearch-python
 python-dotenv
 httpx
 duckduckgo-search
+wikipedia

@@ -81,6 +81,26 @@ def perform_search(query, required_terms=None, max_results=5):
         except Exception as e:
             logging.error(f"Bing failed for '{query}': {e}")
 
+    # 4. Final Fallback: Wikipedia (Official API - Reliable on Vercel)
+    if not raw_results:
+        try:
+            logging.info(f"Wikipedia Fallback: {query}")
+            import wikipedia
+            # Set language to english
+            wikipedia.set_lang("en")
+            # Search for pages
+            wiki_search = wikipedia.search(query, results=1)
+            if wiki_search:
+                page = wikipedia.page(wiki_search[0], auto_suggest=False)
+                raw_results.append({
+                    "title": page.title,
+                    "url": page.url,
+                    "description": page.summary[:300] + "...",
+                    "source": "Wikipedia"
+                })
+        except Exception as e:
+             logging.error(f"Wikipedia failed for '{query}': {e}")
+
     # 3. Process and Filter Results
     processed_results = []
     
