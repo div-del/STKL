@@ -9,8 +9,8 @@ function App() {
   const handleSearch = async (name, extraInfo) => {
     setLoading(true);
     try {
-      // Use env variable for API URL (Vercel) or fallback to localhost
-      const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8001";
+      // Hardcoded for stability
+      const API_BASE = "https://stkl.vercel.app";
       const url = `${API_BASE}/api/search`;
       const response = await fetch(url, {
         method: 'POST',
