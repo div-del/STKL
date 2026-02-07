@@ -38,3 +38,7 @@ def search_person(request: SearchRequest):
 @app.get("/api/health")
 def health_check():
     return {"status": "ok"}
+
+@app.get("/")
+def root():
+    return {"status": "Backend is running", "docs": "/docs"}
