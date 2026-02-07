@@ -18,23 +18,42 @@ def perform_search(query, required_terms=None, max_results=5):
     """
     raw_results = []
     
-    # 1. Try DuckDuckGo
-    try:
-        # Random sleep to minimize rate limiting
-        time.sleep(random.uniform(1.0, 2.0))
-        logging.info(f"DDG Search: {query}")
-        with DDGS() as ddgs:
-            ddg_gen = ddgs.text(query, max_results=max_results)
-            if ddg_gen:
-                for r in ddg_gen:
-                    raw_results.append({
-                        "title": r.get('title', ''),
-                        "url": r.get('href', ''),
-                        "description": r.get('body', ''),
-                        "source": "DDG"
-                    })
-    except Exception as e:
-        logging.error(f"DDG failed for '{query}': {e}")
+    # 1. Try DuckDuckGo with Backend Rotation
+    # Vercel IPs are often blocked, so we try different backends ('api', 'html', 'lite')
+    ddg_backends = ['api', 'html', 'lite']
+    
+    for backend in ddg_backends:
+        if raw_results:
+            break # Stop if we found results
+            
+        try:
+            # Random sleep to minimize rate limiting
+            sleep_time = random.uniform(1.0, 3.0)
+            time.sleep(sleep_time)
+            
+            logging.info(f"DDG Search ({backend}): {query}")
+            
+            # Initialize DDGS with the specific backend
+            # Note: The 'backend' param is passed to the .text() method in newer versions, 
+            # or used to instantiate. We'll try passing it to .text() as it's the standard way now.
+            with DDGS() as ddgs:
+                # We request more results than needed in case some are filtered out
+                ddg_gen = ddgs.text(query, region='wt-wt', safesearch='off', timelimit='y', backend=backend, max_results=max_results+2)
+                
+                if ddg_gen:
+                    for r in ddg_gen:
+                        raw_results.append({
+                            "title": r.get('title', ''),
+                            "url": r.get('href', ''),
+                            "description": r.get('body', ''),
+                            "source": f"DDG-{backend}"
+                        })
+                        
+            if raw_results:
+                logging.info(f"Success with DDG-{backend}")
+                
+        except Exception as e:
+            logging.error(f"DDG-{backend} failed for '{query}': {e}")
 
     # 2. Fallback to Google Search if DDG failed or returned 0
     if not raw_results:
@@ -57,8 +76,17 @@ def perform_search(query, required_terms=None, max_results=5):
     if not raw_results:
         try:
             logging.info(f"Bing Fallback: {query}")
+            # Rotational User-Agents to bypass scrapers
+            user_agents = [
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+            ]
             headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+                "User-Agent": random.choice(user_agents),
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.9"
             }
             # Search English results
             response = requests.get(f"https://www.bing.com/search?q={query}", headers=headers, timeout=10)
